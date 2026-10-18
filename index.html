@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090d2b">
+  <title>CricFAN — International Cricket</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="CricFAN home"><span class="brand-mark">C</span><span>Cric<span>FAN</span></span></a>
+    <nav class="tabs" aria-label="Cricket categories">
+      <button class="tab active" data-category="INTERNATIONAL">INTERNATIONAL</button>
+      <button class="tab" data-category="TOURNAMENT">TOURNAMENT</button>
+      <button class="tab" data-category="NATIONAL">NATIONAL</button>
+    </nav>
+    <button id="addMatchTop" class="button button-outline">＋ Add match</button>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">THE GAME, IN REAL TIME</p>
+        <h1>Every ball.<br><span>Every moment.</span></h1>
+        <p class="hero-copy">International cricket live scores and recent results, all in one place.</p>
+      </div>
+      <div class="hero-ball" aria-hidden="true"><span>🏏</span></div>
+    </section>
+
+    <section class="toolbar">
+      <label class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Search teams, series or matches…" autocomplete="off"></label>
+      <div class="toolbar-right"><span id="refreshStatus" class="refresh-status"><i></i> Connecting to score source</span><button id="refreshBtn" class="button button-outline">↻ Refresh</button></div>
+    </section>
+
+    <section class="section-head"><div><p class="eyebrow">YOUR SCOREBOARD</p><h2 id="sectionTitle">International matches</h2></div><span id="lastUpdated" class="muted">Waiting for API connection</span></section>
+    <div class="filter-row">
+      <button class="filter active" data-filter="all">All</button>
+      <button class="filter" data-filter="live">● Live</button>
+      <button class="filter" data-filter="result">Results</button>
+      <button class="filter" data-filter="upcoming">Upcoming</button>
+    </div>
+    <div id="matchList" class="match-grid" aria-live="polite">
+      <div class="empty-state"><div class="empty-icon">🏏</div><h3>Connecting to live scores</h3><p>Configure a licensed cricket score API in <code>index.js</code>. CricFAN does not insert fake match data.</p></div>
+    </div>
+
+    <section class="section-head score-entry-head"><div><p class="eyebrow">SCORING DESK</p><h2>Manual score entry</h2></div><span class="muted">Updates scorecard automatically</span></section>
+    <section class="scoring-layout">
+      <div class="panel">
+        <div class="panel-title"><h3>Create / select a match</h3><span class="pill">MANUAL</span></div>
+        <form id="matchForm" class="form-grid">
+          <label>Team 1<input name="team1" placeholder="e.g. India" required maxlength="40"></label>
+          <label>Team 2<input name="team2" placeholder="e.g. Australia" required maxlength="40"></label>
+          <label>Format<select name="format"><option>Test</option><option selected>ODI</option><option>T20I</option></select></label>
+          <label>Match status<select name="status"><option value="live">Live</option><option value="result">Result</option><option value="upcoming">Upcoming</option></select></label>
+          <button class="button button-primary form-submit" type="submit">＋ Create match</button>
+        </form>
+        <p class="hint">Manual matches are kept in this browser only. Connect a backend to sync them across devices.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><h3>Ball-by-ball controls</h3><span id="selectedMatchLabel" class="pill">No match selected</span></div>
+        <div id="scoringDisabled" class="hint">Create a manual match above, then select it from the match list to enter scores.</div>
+        <div id="scoringControls" hidden>
+          <div class="score-summary"><strong id="manualScore">0/0</strong><span id="manualOvers">0.0 overs</span><span id="manualRunRate">RR 0.00</span></div>
+          <div class="batter-row"><div><small>STRIKER</small><b id="strikerName">Batter 1</b><span id="strikerStats">0 (0)</span></div><div><small>NON-STRIKER</small><b id="nonStrikerName">Batter 2</b><span id="nonStrikerStats">0 (0)</span></div></div>
+          <div class="control-label">Runs off the bat</div>
+          <div class="run-buttons"><button data-runs="0">0</button><button data-runs="1">1</button><button data-runs="2">2</button><button data-runs="3">3</button><button data-runs="4" class="boundary">4</button><button data-runs="6" class="boundary">6</button></div>
+          <div class="extra-buttons"><button data-extra="wide">Wide +1</button><button data-extra="noball">No-ball +1</button><button data-extra="bye">Bye</button><button data-extra="legbye">Leg bye</button><button id="wicketBtn" class="danger">Wicket</button><button id="undoBtn">Undo last ball</button></div>
+          <div class="control-label">Players & innings</div>
+          <div class="player-fields"><label>Striker<input id="strikerInput" value="Batter 1"></label><label>Non-striker<input id="nonStrikerInput" value="Batter 2"></label><label>Bowler<input id="bowlerInput" value="Bowler 1"></label><label>Batting team<select id="battingTeam"></select></label></div>
+          <button id="endInningsBtn" class="button button-outline wide-button">End innings / switch innings</button>
+          <div id="scorecard" class="scorecard"></div>
+        </div>
+      </div>
+    </section>
+    <footer><span class="brand small-brand">Cric<span>FAN</span></span><span>Scores should be verified with the official broadcaster or governing body.</span></footer>
+  </main>
+
+  <dialog id="addMatchDialog">
+    <form id="quickAddForm" method="dialog" class="dialog-content">
+      <button type="button" class="dialog-close" id="closeDialog" aria-label="Close">×</button>
+      <p class="eyebrow">MANUAL MATCH</p><h2>Add a match</h2>
+      <label>Team 1<input name="team1" required placeholder="Home team"></label>
+      <label>Team 2<input name="team2" required placeholder="Away team"></label>
+      <label>Format<select name="format"><option>Test</option><option selected>ODI</option><option>T20I</option></select></label>
+      <button type="submit" class="button button-primary">Create match</button>
+    </form>
+  </dialog>
+  <script src="index.js"></script>
+</body>
+</html>
